@@ -30,6 +30,12 @@ juce_add_plugin(InstantPump
     AU_MAIN_TYPE kAudioUnitType_Effect
     COPY_PLUGIN_AFTER_BUILD FALSE)
 
+juce_add_binary_data(InstantPumpData SOURCES
+    Resources/logo.png
+    Resources/Oswald-Bold.ttf
+    Resources/SpaceMono-Bold.ttf
+    Resources/SpaceMono-Regular.ttf)
+
 target_sources(InstantPump PRIVATE
     Source/PluginProcessor.cpp
     Source/PluginEditor.cpp)
@@ -41,7 +47,7 @@ target_compile_definitions(InstantPump PUBLIC
     JUCE_DISPLAY_SPLASH_SCREEN=0)
 
 target_link_libraries(InstantPump
-    PRIVATE juce::juce_audio_utils juce::juce_dsp
+    PRIVATE InstantPumpData juce::juce_audio_utils juce::juce_dsp
     PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
 
 # ---- tests + screenshot tool (not shipped)
@@ -54,5 +60,5 @@ if(KD_BUILD_TOOLS)
     target_sources(kd_snapshot PRIVATE Tests/Snapshot.cpp Source/PluginProcessor.cpp Source/PluginEditor.cpp)
     target_compile_definitions(kd_snapshot PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JucePlugin_Name="Rave Academy Instant Pump"
         JUCE_STANDALONE_APPLICATION=1 JUCE_MODAL_LOOPS_PERMITTED=1)
-    target_link_libraries(kd_snapshot PRIVATE juce::juce_audio_utils juce::juce_dsp juce::juce_recommended_config_flags)
+    target_link_libraries(kd_snapshot PRIVATE InstantPumpData juce::juce_audio_utils juce::juce_dsp juce::juce_recommended_config_flags)
 endif()

@@ -35,6 +35,10 @@ public:
     juce::AudioProcessorValueTreeState params;
 
     kickduck::Shape currentShape() const;
+
+    // editor size is remembered with the session (same as Kick Extractor)
+    int getSavedWidth() const { return (int) params.state.getProperty ("uiWidth", 0); }
+    void setSavedWidth (int w) { params.state.setProperty ("uiWidth", w, nullptr); }
     double currentMix01() const { return mixParam->load() / 100.0; }
 
     // ---- data for the waveform display (audio thread -> UI thread, lock free)
