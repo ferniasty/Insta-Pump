@@ -39,8 +39,8 @@ jobs:
           codesign --force --deep -s - "$A/AU/Rave Academy Instant Pump.component"
           # fail the build if the binary would not load on older macOS
           B="$A/VST3/Rave Academy Instant Pump.vst3/Contents/MacOS/Rave Academy Instant Pump"
-          vtool -arch x86_64 -show-build "$B" | tee /dev/stderr | grep -q "minos 10.13"
-          vtool -arch arm64 -show-build "$B" | tee /dev/stderr | grep -q "minos 11.0"
+          vtool -arch x86_64 -show-build "$B" | tee /dev/stderr | grep -qE "(minos|version) 10\.13"
+          vtool -arch arm64 -show-build "$B" | tee /dev/stderr | grep -qE "(minos|version) 11\.0"
           mkdir -p "pkg/Instant Pump (Mac)" dist
           cp -R "$A/VST3/Rave Academy Instant Pump.vst3" "$A/AU/Rave Academy Instant Pump.component" "pkg/Instant Pump (Mac)/"
           cp Install/INSTALUJ-Mac.txt LICENSE "pkg/Instant Pump (Mac)/"
