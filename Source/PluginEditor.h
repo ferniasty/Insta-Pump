@@ -2,23 +2,11 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "PluginProcessor.h"
 
-// Rave Academy look — identical palette and fonts to Kick Extractor
-namespace look
+namespace rave
 {
-inline const juce::Colour night     { 0xff07030c };   // background
-inline const juce::Colour plum      { 0xff160826 };   // panels
-inline const juce::Colour line      { 0xff2e1a45 };
-inline const juce::Colour violet    { 0xff8a2be2 };
-inline const juce::Colour lavender  { 0xffd3a8ff };   // small caps labels
-inline const juce::Colour lime      { 0xffc6ff1a };
-inline const juce::Colour limeDeep  { 0xff17200a };
-inline const juce::Colour white     { 0xfff4f1f8 };
-inline const juce::Colour grey      { 0xff9a90a8 };
-
-juce::Font heading (float height);            // Oswald Bold
-juce::Font mono (float height, bool bold);    // Space Mono
-void spaced (juce::Graphics&, const juce::String&, juce::Rectangle<float>, float height, juce::Colour,
-             juce::Justification = juce::Justification::centredLeft, float tracking = 0.18f, bool bold = true);
+const juce::Colour bg0 { 0xff09060f }, bg1 { 0xff150c24 }, panel { 0xff110b1c }, card { 0xff170f24 },
+    cardOn { 0xff1a2008 }, border { 0xff2c2140 }, lime { 0xffc8ff1a }, purple { 0xff9545e7 },
+    silver { 0xffc7c2d6 }, text { 0xffe6e2ee }, dim { 0xff8a8199 };
 }
 
 class RaveLookAndFeel : public juce::LookAndFeel_V4
@@ -27,7 +15,7 @@ public:
     void drawRotarySlider (juce::Graphics&, int x, int y, int w, int h, float pos, float a0, float a1, juce::Slider&) override;
 };
 
-// waveform + envelope display
+// waveform + envelope display (top)
 class EnvelopeDisplay : public juce::Component
 {
 public:
@@ -48,13 +36,16 @@ private:
     juce::RangedAudioParameter* lenParam = nullptr;
 };
 
-// one card with a knob, its name and value
+// one Kick-Extractor-style card holding a knob
 class KnobCard : public juce::Component
 {
 public:
     KnobCard (KickDuckProcessor& p, const juce::String& paramId, const juce::String& title, bool stepped);
     void paint (juce::Graphics&) override;
     void resized() override;
+    void mouseEnter (const juce::MouseEvent&) override { repaint(); }
+    void mouseExit (const juce::MouseEvent&) override { repaint(); }
+    void mouseUp (const juce::MouseEvent&) override { repaint(); }
     juce::Slider slider;
 
 private:

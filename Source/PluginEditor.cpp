@@ -3,46 +3,33 @@
 
 using namespace juce;
 
-// ============================================================================
-//  Fonts and helpers (same as Kick Extractor)
-// ============================================================================
-namespace look
-{
 namespace
 {
 struct Typefaces
 {
     Typeface::Ptr oswald = Typeface::createSystemTypefaceFor (BinaryData::OswaldBold_ttf, BinaryData::OswaldBold_ttfSize);
-    Typeface::Ptr monoBold = Typeface::createSystemTypefaceFor (BinaryData::SpaceMonoBold_ttf, BinaryData::SpaceMonoBold_ttfSize);
-    Typeface::Ptr monoRegular = Typeface::createSystemTypefaceFor (BinaryData::SpaceMonoRegular_ttf, BinaryData::SpaceMonoRegular_ttfSize);
 };
-}
-
 Font heading (float height)
 {
     static SharedResourcePointer<Typefaces> t;
     return Font (FontOptions (t->oswald).withHeight (height));
 }
-
-Font mono (float height, bool bold)
-{
-    static SharedResourcePointer<Typefaces> t;
-    return Font (FontOptions (bold ? t->monoBold : t->monoRegular).withHeight (height));
 }
 
-void spaced (Graphics& g, const String& s, Rectangle<float> area, float height, Colour c, Justification j, float tracking, bool bold)
+static Font uiFont (float size, bool bold = true)
 {
-    auto f = mono (height, bold);
-    f.setExtraKerningFactor (tracking);
-    g.setFont (f);
+    return Font (FontOptions (size, bold ? Font::bold : Font::plain));
+}
+
+static void drawSpacedText (Graphics& g, const String& s, Rectangle<float> area, float size, Colour c,
+                            Justification j = Justification::centred, float kerning = 0.12f)
+{
     g.setColour (c);
+    g.setFont (uiFont (size).withExtraKerningFactor (kerning));
     g.drawText (s, area, j, false);
 }
-}
 
-using namespace look;
-
-static void cornerBrackets (Graphics& g, Rectangle<float> r, Colour c, float len, float inset)
+static void cornerBrackets (Graphics& g, Rectangle<float> r, Colour c, float len = 14.f, float inset = 10.f)
 {
     r = r.reduced (inset);
     Path p;
@@ -54,54 +41,53 @@ static void cornerBrackets (Graphics& g, Rectangle<float> r, Colour c, float len
     g.strokePath (p, PathStrokeType (2.0f));
 }
 
-// ============================================================================
-//  Knob
-// ============================================================================
+// ============================================================ knob look
 void RaveLookAndFeel::drawRotarySlider (Graphics& g, int x, int y, int w, int h, float pos, float a0, float a1, Slider& s)
 {
     const auto bounds = Rectangle<float> ((float) x, (float) y, (float) w, (float) h);
-    const float R = jmin (bounds.getWidth(), bounds.getHeight()) / 2.0f - 13.0f;
+    const float R = jmin (bounds.getWidth(), bounds.getHeight()) / 2.0f - 10.0f;
     const auto c = bounds.getCentre();
     const bool stepped = s.getInterval() >= 1.0 && s.getMaximum() <= 3.0;
     const bool bipolar = s.getMinimum() < 0;
     const float ang = a0 + pos * (a1 - a0);
 
-    g.setGradientFill (ColourGradient (violet.withAlpha (0.30f), c.x, c.y, violet.withAlpha (0.0f), c.x + R * 1.3f, c.y, true));
-    g.fillEllipse (Rectangle<float> (R * 2.6f, R * 2.6f).withCentre (c));
+    // purple glow
+    g.setGradientFill (ColourGradient (rave::purple.withAlpha (0.35f), c.x, c.y, rave::purple.withAlpha (0.0f), c.x + R * 1.35f, c.y, true));
+    g.fillEllipse (Rectangle<float> (R * 2.7f, R * 2.7f).withCentre (c));
 
+    // track + value arc
     Path track; track.addCentredArc (c.x, c.y, R, R, 0, a0, a1, true);
-    g.setColour (line); g.strokePath (track, PathStrokeType (5.f, PathStrokeType::curved, PathStrokeType::rounded));
+    g.setColour (rave::border); g.strokePath (track, PathStrokeType (6.f, PathStrokeType::curved, PathStrokeType::rounded));
     Path arc;
     if (bipolar) { const float mid = (a0 + a1) / 2; arc.addCentredArc (c.x, c.y, R, R, 0, jmin (mid, ang), jmax (mid, ang), true); }
     else arc.addCentredArc (c.x, c.y, R, R, 0, a0, ang, true);
-    g.setColour (lime); g.strokePath (arc, PathStrokeType (5.f, PathStrokeType::curved, PathStrokeType::rounded));
+    g.setColour (rave::lime); g.strokePath (arc, PathStrokeType (6.f, PathStrokeType::curved, PathStrokeType::rounded));
 
-    const float r2 = R - 9.f;
+    // silver ring (like the Kick Extractor icons) + dark body
+    const float r2 = R - 11.f;
     g.setGradientFill (ColourGradient (Colour (0xffe9e6f2), c.x - r2, c.y - r2, Colour (0xff5d5670), c.x + r2, c.y + r2, false));
     g.fillEllipse (Rectangle<float> (r2 * 2, r2 * 2).withCentre (c));
-    const float r3 = r2 - 2.5f;
-    g.setGradientFill (ColourGradient (Colour (0xff261a36), c.x, c.y - r3, Colour (0xff0e0716), c.x, c.y + r3, false));
+    const float r3 = r2 - 3.f;
+    g.setGradientFill (ColourGradient (Colour (0xff2a2038), c.x, c.y - r3, Colour (0xff120c1c), c.x, c.y + r3, false));
     g.fillEllipse (Rectangle<float> (r3 * 2, r3 * 2).withCentre (c));
 
-    const Point<float> p1 = c.getPointOnCircumference (r3 * 0.35f, ang), p2 = c.getPointOnCircumference (r3 - 5.f, ang);
-    g.setColour (lime);
-    g.drawLine ({ p1, p2 }, 3.5f);
-    g.fillEllipse (Rectangle<float> (5, 5).withCentre (p2));
+    // pointer
+    const Point<float> p1 = c.getPointOnCircumference (r3 * 0.35f, ang), p2 = c.getPointOnCircumference (r3 - 6.f, ang);
+    g.setColour (rave::lime);
+    g.drawLine ({ p1, p2 }, 4.f);
+    g.fillEllipse (Rectangle<float> (6, 6).withCentre (p2));
 
-    if (stepped)
+    if (stepped) // 4 detents for SHAPE
         for (int i = 0; i < 4; ++i)
         {
             const float a = a0 + (float) i / 3.f * (a1 - a0);
             const bool on = i == roundToInt (s.getValue());
-            g.setColour (on ? lime : violet);
-            const float d = on ? 7.f : 5.f;
-            g.fillEllipse (Rectangle<float> (d, d).withCentre (c.getPointOnCircumference (R + 9.f, a)));
+            g.setColour (on ? rave::lime : rave::purple);
+            g.fillEllipse (Rectangle<float> (on ? 8.f : 6.f, on ? 8.f : 6.f).withCentre (c.getPointOnCircumference (R + 11.f, a)));
         }
 }
 
-// ============================================================================
-//  Envelope display
-// ============================================================================
+// ============================================================ envelope display
 EnvelopeDisplay::EnvelopeDisplay (KickDuckProcessor& p) : proc (p)
 {
     lenParam = proc.params.getParameter ("length");
@@ -127,71 +113,77 @@ void EnvelopeDisplay::paint (Graphics& g)
     auto b = getLocalBounds().toFloat();
     const bool playing = proc.hostPlaying.load();
 
-    // selected-card look from Kick Extractor: lime frame, soft glow, corner brackets
-    for (int i = 5; i > 0; --i)
+    // card with lime glow (selected look from Kick Extractor)
+    for (int i = 3; i >= 1; --i)
     {
-        g.setColour (lime.withAlpha (0.03f));
-        g.fillRoundedRectangle (b.reduced (6.0f - (float) i), 18.0f + (float) i * 0.5f);
+        g.setColour (rave::lime.withAlpha (0.05f * (float) i));
+        g.drawRoundedRectangle (b.reduced (3.f - (float) i), 18.f, 2.f * (float) i);
     }
-    auto card = b.reduced (6.0f);
-    g.setGradientFill (ColourGradient (Colour (0xff1d2a0c), card.getX(), card.getY(), limeDeep, card.getX(), card.getBottom(), false));
-    g.fillRoundedRectangle (card, 18.0f);
-    g.setColour (Colour (0xff0b0613).withAlpha (0.55f));
-    g.fillRoundedRectangle (card.reduced (3.0f), 16.0f);
-    g.setColour (lime);
-    g.drawRoundedRectangle (card.reduced (1.0f), 18.0f, 2.5f);
-    cornerBrackets (g, card, lime, 13.f, 9.f);
+    g.setGradientFill (ColourGradient (Colour (0xff141a08), 0, b.getY(), Colour (0xff0d0916), 0, b.getBottom(), false));
+    g.fillRoundedRectangle (b.reduced (3), 16.f);
+    g.setColour (rave::lime);
+    g.drawRoundedRectangle (b.reduced (3), 16.f, 2.f);
+    cornerBrackets (g, b.reduced (3), rave::lime, 16.f, 10.f);
 
-    auto area = card.reduced (30.f, 16.f).withTrimmedBottom (14.f);
+    auto area = b.reduced (34.f, 26.f).withTrimmedBottom (14.f);
     const float x0 = area.getX(), w = area.getWidth(), top = area.getY(), h = area.getHeight();
     const float mid = top + h / 2;
     const int beats = jmax (1, proc.beatsPerBar.load());
 
+    // grid
     for (int i = 0; i <= beats * 4; ++i)
     {
         const float gx = x0 + (float) i / (float) (beats * 4) * w;
-        g.setColour (line.withAlpha (i % 4 == 0 ? 1.0f : 0.45f));
+        g.setColour (rave::border.withAlpha (i % 4 == 0 ? 0.9f : 0.35f));
         g.drawVerticalLine ((int) gx, top, top + h);
+        if (i % 4 == 0 && i < beats * 4)
+        {
+            g.setColour (rave::purple);
+            g.fillRoundedRectangle (gx, top + h + 7.f, 7.f, 7.f, 1.5f);
+        }
     }
-    g.setColour (line); g.drawHorizontalLine ((int) mid, x0, x0 + w);
+    g.setColour (rave::border); g.drawHorizontalLine ((int) mid, x0, x0 + w);
 
+    // waveform: input (silver) behind, output (lime) in front
     const float sx = w / (float) numCols;
     for (int c = 0; c < numCols; ++c)
     {
         const float a = jmin (1.f, inPk[(size_t) c]) * h / 2, o = jmin (1.f, outPk[(size_t) c]) * h / 2;
-        if (a > 0.3f) { g.setColour (white.withAlpha (0.14f)); g.fillRect (x0 + (float) c * sx, mid - a, sx + 0.4f, 2 * a); }
-        if (o > 0.3f) { g.setColour (lime.withAlpha (0.55f)); g.fillRect (x0 + (float) c * sx, mid - o, sx + 0.4f, 2 * o); }
+        if (a > 0.3f) { g.setColour (rave::silver.withAlpha (0.16f)); g.fillRect (x0 + (float) c * sx, mid - a, sx + 0.4f, 2 * a); }
+        if (o > 0.3f) { g.setColour (rave::lime.withAlpha (0.55f)); g.fillRect (x0 + (float) c * sx, mid - o, sx + 0.4f, 2 * o); }
     }
 
+    // envelope (final gain incl. MIX) over one bar
     const auto shape = proc.currentShape();
     const double mix = proc.currentMix01(), bl = 60.0 / proc.hostBpm.load();
-    Path env;
+    Path env, fill;
     for (int px = 0; px <= (int) w; ++px)
     {
         double pos = (double) px / w * beats, xx = pos - std::floor (pos);
         if (px == (int) w) xx = 0.99999;
         const float yy = top + h - (float) kickduck::gain (xx, bl, shape, mix) * h;
-        if (px == 0) env.startNewSubPath (x0, yy); else env.lineTo (x0 + (float) px, yy);
+        if (px == 0) { env.startNewSubPath (x0, yy); fill.startNewSubPath (x0, top + h); fill.lineTo (x0, yy); }
+        else { env.lineTo (x0 + (float) px, yy); fill.lineTo (x0 + (float) px, yy); }
     }
-    g.setColour (white.withAlpha (0.22f));
-    g.strokePath (env, PathStrokeType (6.f, PathStrokeType::curved, PathStrokeType::rounded));
-    g.setColour (white);
-    g.strokePath (env, PathStrokeType (2.f, PathStrokeType::curved, PathStrokeType::rounded));
+    fill.lineTo (x0 + w, top + h); fill.closeSubPath();
+    g.setGradientFill (ColourGradient (Colours::white.withAlpha (0.10f), 0, top, Colours::white.withAlpha (0.0f), 0, top + h, false));
+    g.fillPath (fill);
+    g.setColour (Colours::white.withAlpha (0.95f));
+    g.strokePath (env, PathStrokeType (2.2f, PathStrokeType::curved, PathStrokeType::rounded));
 
+    // playhead
     const float bp = proc.barPhase.load();
     if (playing && bp >= 0)
     {
         const float hx = x0 + bp * w;
         double bx = bp * beats; bx -= std::floor (bx);
-        g.setColour (white.withAlpha (0.7f)); g.drawVerticalLine ((int) hx, top - 4.f, top + h + 4.f);
-        g.setColour (lime);
-        g.fillEllipse (Rectangle<float> (8, 8).withCentre ({ hx, top + h - (float) kickduck::gain (bx, bl, shape, mix) * h }));
+        g.setColour (rave::lime.withAlpha (0.9f)); g.drawVerticalLine ((int) hx, top, top + h);
+        g.setColour (Colours::white);
+        g.fillEllipse (Rectangle<float> (9, 9).withCentre ({ hx, top + h - (float) kickduck::gain (bx, bl, shape, mix) * h }));
     }
 
-    for (int k = 0; k < beats; ++k)
-        spaced (g, "KICK", { x0 + (float) k / (float) beats * w - 2.f, top + h + 3.f, 60.f, 12.f }, 8.5f, grey, Justification::centredLeft, 0.1f, false);
-    spaced (g, playing ? "DRAG LEFT / RIGHT = LENGTH" : "PRESS PLAY TO SEE THE WAVEFORM", { x0, top + h + 3.f, w, 12.f }, 8.5f, grey,
-            Justification::centredRight, 0.1f, false);
+    drawSpacedText (g, playing ? String ("DRAG LEFT / RIGHT = LENGTH") : String (CharPointer_UTF8 ("PRESS PLAY TO SEE THE WAVEFORM  \xc2\xb7  DRAG = LENGTH")),
+                    { x0, b.getBottom() - 30.f, w, 16.f }, 10.f, rave::dim, Justification::centredRight);
 }
 
 void EnvelopeDisplay::mouseDown (const MouseEvent&)
@@ -213,9 +205,7 @@ void EnvelopeDisplay::mouseDoubleClick (const MouseEvent&)
     lenParam->endChangeGesture();
 }
 
-// ============================================================================
-//  Knob cards (same card language as Kick Extractor's mode buttons)
-// ============================================================================
+// ============================================================ knob cards
 KnobCard::KnobCard (KickDuckProcessor& p, const String& paramId, const String& t, bool isStepped)
     : proc (p), pid (paramId), title (t), stepped (isStepped)
 {
@@ -233,32 +223,32 @@ KnobCard::KnobCard (KickDuckProcessor& p, const String& paramId, const String& t
 
 void KnobCard::resized()
 {
-    auto r = getLocalBounds().reduced (6);
-    slider.setBounds (r.removeFromLeft (r.getHeight()).reduced (2));
+    auto r = getLocalBounds().reduced (8);
+    r.removeFromBottom (34);
+    slider.setBounds (r.withSizeKeepingCentre (jmin (r.getWidth(), r.getHeight()), jmin (r.getWidth(), r.getHeight())));
 }
 
 void KnobCard::paint (Graphics& g)
 {
-    auto r = getLocalBounds().toFloat().reduced (2.0f);
+    auto b = getLocalBounds().toFloat().reduced (3);
     const bool hot = slider.isMouseOverOrDragging (true) || isMouseOver (true);
-
-    g.setGradientFill (ColourGradient (plum.brighter (hot ? 0.25f : 0.08f), r.getX(), r.getY(), plum, r.getX(), r.getBottom(), false));
-    g.fillRoundedRectangle (r, 18.0f);
-    g.setColour (hot ? lime.withAlpha (0.7f) : line);
-    g.drawRoundedRectangle (r.reduced (0.5f), 18.0f, hot ? 1.7f : 1.2f);
+    g.setGradientFill (ColourGradient (hot ? rave::cardOn : rave::card, 0, b.getY(), Colour (0xff0e0918), 0, b.getBottom(), false));
+    g.fillRoundedRectangle (b, 16.f);
+    g.setColour (hot ? rave::lime : rave::border);
+    g.drawRoundedRectangle (b, 16.f, hot ? 2.f : 1.2f);
+    g.setColour (rave::border.withAlpha (0.7f));
+    g.drawHorizontalLine ((int) b.getY() + 10, b.getX() + 24, b.getRight() - 24);
+    g.drawHorizontalLine ((int) b.getBottom() - 10, b.getX() + 24, b.getRight() - 24);
+    if (hot) cornerBrackets (g, b, rave::lime, 12.f, 9.f);
 
     String value;
     if (auto* prm = proc.params.getParameter (pid)) value = prm->getCurrentValueAsText();
-    const float tx = (float) slider.getRight() + 4.0f, tw = r.getRight() - tx - 12.0f;
-    spaced (g, title, { tx, r.getCentreY() - 30.f, tw, 16.f }, 11.f, lavender, Justification::centredLeft, 0.18f, true);
-    g.setFont (heading (30.f));
-    g.setColour (hot ? lime : white);
-    g.drawText (value, Rectangle<float> (tx, r.getCentreY() - 12.f, tw, 38.f), Justification::centredLeft, false);
+    auto label = b.withTop (b.getBottom() - 46.f).withTrimmedBottom (14.f);
+    drawSpacedText (g, title, label.removeFromTop (16.f), 11.5f, hot ? rave::lime : rave::text);
+    drawSpacedText (g, value, label, 12.5f, hot ? rave::lime : rave::silver);
 }
 
-// ============================================================================
-//  Editor
-// ============================================================================
+// ============================================================ editor
 KickDuckEditor::KickDuckEditor (KickDuckProcessor& p)
     : AudioProcessorEditor (&p), proc (p), display (p),
       mixCard (p, "mix", "MIX", false), lengthCard (p, "length", "LENGTH", false),
@@ -271,7 +261,7 @@ KickDuckEditor::KickDuckEditor (KickDuckProcessor& p)
     for (auto* c : { &mixCard, &lengthCard, &curveCard, &shapeCard }) panel.addAndMakeVisible (c);
     addAndMakeVisible (panel);
 
-    // resizable exactly like Kick Extractor: fixed aspect, 60..200 %, size remembered
+    // same window as Kick Extractor: 960 x 420, fixed aspect, 60..200 %, size remembered
     const int saved = proc.getSavedWidth();
     restoring = true;
     setResizable (true, true);
@@ -296,45 +286,60 @@ void KickDuckEditor::timerCallback()
     display.repaint();
 }
 
-void KickDuckEditor::paint (Graphics& g) { g.fillAll (night); }
+void KickDuckEditor::paint (Graphics& g) { g.fillAll (rave::bg0); }
+
+static Rectangle<float> mainPanelArea() { return { 16.f, 96.f, 928.f, 314.f }; }
 
 void KickDuckEditor::resized()
 {
     panel.setBounds (0, 0, baseW, baseH);
     panel.setTransform (AffineTransform::scale ((float) getWidth() / (float) baseW));
-    display.setBounds (24, 112, 912, 166);
-    int i = 0;
+    auto r = mainPanelArea().toNearestInt().reduced (14, 10);
+    display.setBounds (r.removeFromTop (144));
+    r.removeFromTop (8);
+    const int gap = 14, cw = (r.getWidth() - 3 * gap) / 4;
     for (auto* c : { &mixCard, &lengthCard, &curveCard, &shapeCard })
-        c->setBounds (30 + (i++) * 230, 288, 210, 112);
+    {
+        c->setBounds (r.removeFromLeft (cw));
+        r.removeFromLeft (gap);
+    }
     if (! restoring) proc.setSavedWidth (getWidth());
 }
 
 void KickDuckEditor::paintPanel (Graphics& g)
 {
-    const auto area = Rectangle<float> (0, 0, (float) baseW, (float) baseH);
+    const auto b = Rectangle<float> (0, 0, (float) baseW, (float) baseH);
 
-    // background: identical to Kick Extractor
-    g.setColour (night);
-    g.fillRect (area);
-    g.setGradientFill (ColourGradient (Colour (0x3e4d107a), 480.0f, 220.0f, Colour (0x004d107a), 480.0f, 410.0f, true));
-    g.fillRect (area);
+    // background and soft glows (unchanged look)
+    g.setGradientFill (ColourGradient (rave::bg0, 0, 0, rave::bg1, 0, b.getBottom(), false));
+    g.fillRect (b);
+    g.setGradientFill (ColourGradient (rave::purple.withAlpha (0.22f), b.getRight() - 140, b.getBottom() - 40,
+                                       rave::purple.withAlpha (0.0f), b.getRight() - 140 - 420, b.getBottom() - 40, true));
+    g.fillRect (b);
+    g.setGradientFill (ColourGradient (rave::lime.withAlpha (0.10f), 140, 150, rave::lime.withAlpha (0.0f), 140 + 300, 150, true));
+    g.fillRect (b);
 
-    // header: same logo, same position and size as Kick Extractor
+    // header: identical to Kick Extractor (same logo file, position, size, font)
     if (logo.isValid())
     {
         const float h = 62.0f;
         const float w = h * (float) logo.getWidth() / (float) logo.getHeight();
         g.drawImage (logo, Rectangle<float> (32.0f, 26.0f, w, h), RectanglePlacement::xLeft);
     }
-
-    // product name: lime first word + white second word, Oswald 56, right aligned at 32 px
     g.setFont (heading (56.0f));
     const String first ("INSTANT"), second (" PUMP");
     const float wSecond = GlyphArrangement::getStringWidth (g.getCurrentFont(), second);
     const float wFirst = GlyphArrangement::getStringWidth (g.getCurrentFont(), first);
     const float right = (float) baseW - 32.0f;
-    g.setColour (white);
+    g.setColour (rave::text);
     g.drawText (second, Rectangle<float> (right - wSecond, 24.0f, wSecond, 64.0f), Justification::centredRight, false);
-    g.setColour (lime);
+    g.setColour (rave::lime);
     g.drawText (first, Rectangle<float> (right - wSecond - wFirst - 4.0f, 24.0f, wFirst + 4.0f, 64.0f), Justification::centredRight, false);
+
+    // main rounded panel (unchanged look)
+    const auto panelArea = mainPanelArea();
+    g.setColour (rave::panel.withAlpha (0.85f));
+    g.fillRoundedRectangle (panelArea, 26.f);
+    g.setGradientFill (ColourGradient (Colour (0xff3a2a55), panelArea.getX(), panelArea.getY(), Colour (0xff1c1429), panelArea.getRight(), panelArea.getBottom(), false));
+    g.drawRoundedRectangle (panelArea, 26.f, 2.f);
 }
