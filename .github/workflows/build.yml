@@ -2,7 +2,12 @@ name: Build Instant Pump
 
 on:
   push:
+    branches: [main]
+    tags: ["v*"]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   macos:
@@ -13,18 +18,17 @@ jobs:
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
       - name: Build VST3 + AU
         run: cmake --build build --config Release --target InstantPump_VST3 InstantPump_AU -j 4
-      - name: Ad-hoc sign and zip
+      - name: Sign (ad-hoc) and package
         run: |
           A="build/InstantPump_artefacts/Release"
           codesign --force --deep -s - "$A/VST3/Instant Pump.vst3"
           codesign --force --deep -s - "$A/AU/Instant Pump.component"
-          mkdir -p dist
-          ditto -c -k --keepParent "$A/VST3/Instant Pump.vst3" "dist/Instant Pump VST3 (Mac).zip"
-          ditto -c -k --keepParent "$A/AU/Instant Pump.component" "dist/Instant Pump AU (Mac).zip"
+          mkdir -p "pkg/Instant Pump (Mac)" dist
+          cp -R "$A/VST3/Instant Pump.vst3" "$A/AU/Instant Pump.component" "pkg/Instant Pump (Mac)/"
+          cp Install/INSTALUJ-Mac.txt "pkg/Instant Pump (Mac)/"
+          ditto -c -k --keepParent "pkg/Instant Pump (Mac)" dist/InstantPump-Mac.zip
       - uses: actions/upload-artifact@v4
-        with:
-          name: InstantPump-mac
-          path: dist/
+        with: { name: mac, path: dist/ }
 
   windows:
     runs-on: windows-2022
@@ -34,12 +38,27 @@ jobs:
         run: cmake -B build
       - name: Build VST3
         run: cmake --build build --config Release --target InstantPump_VST3
-      - name: Zip
+      - name: Package
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force dist | Out-Null
-          Compress-Archive -Path "build/InstantPump_artefacts/Release/VST3/Instant Pump.vst3" -DestinationPath "dist/Instant Pump VST3 (Windows).zip"
+          New-Item -ItemType Directory -Force "pkg/Instant Pump (Windows)", dist | Out-Null
+          Copy-Item -Recurse "build/InstantPump_artefacts/Release/VST3/Instant Pump.vst3" "pkg/Instant Pump (Windows)/"
+          Copy-Item Install/INSTALUJ-Windows.txt "pkg/Instant Pump (Windows)/"
+          Compress-Archive -Path "pkg/Instant Pump (Windows)" -DestinationPath dist/InstantPump-Windows.zip
       - uses: actions/upload-artifact@v4
+        with: { name: windows, path: dist/ }
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: dist, merge-multiple: true }
+      - uses: softprops/action-gh-release@v2
         with:
-          name: InstantPump-windows
-          path: dist/
+          name: Instant Pump ${{ github.ref_name }}
+          files: |
+            dist/InstantPump-Mac.zip
+            dist/InstantPump-Windows.zip
+          make_latest: true

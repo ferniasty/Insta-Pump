@@ -1,25 +1,34 @@
 # Rave Academy – Instant Pump
 
-Volume-ducking plugin in the style of a sidechain: the bass is turned down on every kick and
-comes back along a smooth curve. VST3 (Mac + Windows) and AU (Mac), built with JUCE 8.
+Darmowa wtyczka od Rave Academy: efekt „sidechain” bez routingu. Bas (albo pady, reverb, cokolwiek)
+ścisza się na każdą stopę i wraca płynnym łukiem, w rytm tempa projektu.
 
-Controls: **MIX** (depth), **LENGTH** (stretch the envelope, also drag the display left/right),
-**CURVE** (bend of the recovery), **SHAPE** (TIGHT / PUMP / SMOOTH / CUT).
-Every edge of the envelope is a curve no steeper than a 12 ms S-fade, so no setting clicks.
+## Pobierz
 
-## Build
+- **Mac (VST3 + AU, Apple Silicon i Intel):** https://github.com/OWNER/REPO/releases/latest/download/InstantPump-Mac.zip
+- **Windows (VST3):** https://github.com/OWNER/REPO/releases/latest/download/InstantPump-Windows.zip
 
-Mac and Windows builds run automatically on GitHub Actions (`.github/workflows/build.yml`);
-download them from the run's *Artifacts*.
+Instrukcja instalacji jest w środku każdej paczki (plik `INSTALUJ-...txt`).
 
-Local build:
+## Pokrętła
+
+- **MIX** – jak mocno ścisza (0–100%)
+- **LENGTH** – jak długo trwa ściszenie i powrót (możesz też przeciągać ekran w lewo/prawo)
+- **CURVE** – wygięcie łuku powrotu (w minus: powolny „pump”, w plus: szybki powrót)
+- **SHAPE** – charakter: TIGHT, PUMP, SMOOTH, CUT
+
+Każde zbocze obwiedni jest łagodnym łukiem (najwyżej tak stromym jak 12 ms), więc żadne ustawienie nie klika.
+
+## Dla programistów
+
+Zbudowane w JUCE 8. Budowanie lokalne:
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 ```
 
-Tests (envelope sweep, stereo + click test on the real processor, UI snapshot):
+Testy (krzywe, stereo + kliki na prawdziwym procesorze, zrzut interfejsu):
 
 ```bash
 cmake -B build -DKD_BUILD_TOOLS=ON && cmake --build build
@@ -27,17 +36,8 @@ cmake -B build -DKD_BUILD_TOOLS=ON && cmake --build build
 ./build/kd_snapshot_artefacts/Release/kd_snapshot preview.png
 ```
 
-## Install (Mac)
+Nowe wydanie: wypchnij tag `vX.Y.Z` – GitHub Actions zbuduje Mac + Windows i doda paczki do Releases.
 
-Unzip and copy `Instant Pump.vst3` to `~/Library/Audio/Plug-Ins/VST3/` and
-`Instant Pump.component` to `~/Library/Audio/Plug-Ins/Components/`.
-The build is not notarized, so macOS may block it the first time. Remove the quarantine flag:
+## Licencja
 
-```bash
-xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"Instant Pump.vst3" ~/Library/Audio/Plug-Ins/Components/"Instant Pump.component"
-```
-
-## License note
-
-JUCE is dual-licensed (AGPLv3 or a JUCE commercial licence, including the free Starter tier
-for small revenue). Pick the right one before selling or distributing this plugin.
+AGPLv3 (plik `LICENSE`). Wtyczka używa JUCE na licencji AGPLv3.

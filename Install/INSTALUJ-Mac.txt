@@ -1,0 +1,14 @@
+RAVE ACADEMY - INSTANT PUMP (Mac)
+
+1. Skopiuj "Instant Pump.vst3" do:      ~/Library/Audio/Plug-Ins/VST3/
+   Skopiuj "Instant Pump.component" do: ~/Library/Audio/Plug-Ins/Components/
+   (W Finderze: Idz > Idz do folderu... i wklej sciezke.)
+
+2. Wtyczka nie jest notaryzowana przez Apple, wiec za pierwszym razem macOS moze ja zablokowac.
+   Otworz Terminal i wklej:
+
+   xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"Instant Pump.vst3" ~/Library/Audio/Plug-Ins/Components/"Instant Pump.component"
+
+3. Uruchom ponownie DAW (w Abletonie: Preferences > Plug-Ins > Rescan).
+
+Wtyczka: Rave Academy / Instant Pump. Licencja: AGPLv3, kod zrodlowy na GitHubie.
