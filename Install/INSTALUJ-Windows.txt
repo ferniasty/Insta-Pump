@@ -1,6 +1,6 @@
 RAVE ACADEMY - INSTANT PUMP (Windows)
 
-1. Skopiuj folder "Instant Pump.vst3" do:  C:\Program Files\Common Files\VST3\
+1. Skopiuj folder "Rave Academy Instant Pump.vst3" do:  C:\Program Files\Common Files\VST3\
 2. Uruchom ponownie DAW (w Abletonie: Preferences > Plug-Ins > Rescan).
 
 Wtyczka: Rave Academy / Instant Pump. Licencja: AGPLv3, kod zrodlowy na GitHubie.

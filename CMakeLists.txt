@@ -18,7 +18,7 @@ endif()
 
 juce_add_plugin(InstantPump
     COMPANY_NAME "Rave Academy"
-    PRODUCT_NAME "Instant Pump"
+    PRODUCT_NAME "Rave Academy Instant Pump"
     BUNDLE_ID "com.raveacademy.instantpump"
     PLUGIN_MANUFACTURER_CODE Rave
     PLUGIN_CODE Ipmp
@@ -52,7 +52,7 @@ if(KD_BUILD_TOOLS)
 
     juce_add_console_app(kd_snapshot PRODUCT_NAME "kd_snapshot")
     target_sources(kd_snapshot PRIVATE Tests/Snapshot.cpp Source/PluginProcessor.cpp Source/PluginEditor.cpp)
-    target_compile_definitions(kd_snapshot PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JucePlugin_Name="Instant Pump"
+    target_compile_definitions(kd_snapshot PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JucePlugin_Name="Rave Academy Instant Pump"
         JUCE_STANDALONE_APPLICATION=1 JUCE_MODAL_LOOPS_PERMITTED=1)
     target_link_libraries(kd_snapshot PRIVATE juce::juce_audio_utils juce::juce_dsp juce::juce_recommended_config_flags)
 endif()
