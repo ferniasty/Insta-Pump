@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 # must be set BEFORE project(), otherwise the SDK version (e.g. macOS 15) becomes the minimum
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version (Intel); Apple Silicon is always 11.0+")
 project(InstantPump VERSION 1.0.1)
 
 set(CMAKE_CXX_STANDARD 17)

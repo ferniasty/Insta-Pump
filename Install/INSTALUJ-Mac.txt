@@ -1,4 +1,5 @@
-RAVE ACADEMY - INSTANT PUMP (Mac)
+RAVE ACADEMY INSTANT PUMP (Mac)
+Dziala na: Intel od macOS 10.13 High Sierra, Apple Silicon (M1-M4) od macOS 11.
 
 1. Skopiuj "Rave Academy Instant Pump.vst3" do:      ~/Library/Audio/Plug-Ins/VST3/
    Skopiuj "Rave Academy Instant Pump.component" do: ~/Library/Audio/Plug-Ins/Components/

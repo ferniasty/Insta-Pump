@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: "Configure (universal: Apple Silicon + Intel)"
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13
       - name: Build VST3 + AU
         run: cmake --build build --config Release --target InstantPump_VST3 InstantPump_AU -j 4
       - name: Sign (ad-hoc) and package
@@ -38,7 +38,9 @@ jobs:
           codesign --force --deep -s - "$A/VST3/Rave Academy Instant Pump.vst3"
           codesign --force --deep -s - "$A/AU/Rave Academy Instant Pump.component"
           # fail the build if the binary would not load on older macOS
-          vtool -show-build "$A/VST3/Rave Academy Instant Pump.vst3/Contents/MacOS/Rave Academy Instant Pump" | tee /dev/stderr | grep -q "minos 11.0"
+          B="$A/VST3/Rave Academy Instant Pump.vst3/Contents/MacOS/Rave Academy Instant Pump"
+          vtool -arch x86_64 -show-build "$B" | tee /dev/stderr | grep -q "minos 10.13"
+          vtool -arch arm64 -show-build "$B" | tee /dev/stderr | grep -q "minos 11.0"
           mkdir -p "pkg/Instant Pump (Mac)" dist
           cp -R "$A/VST3/Rave Academy Instant Pump.vst3" "$A/AU/Rave Academy Instant Pump.component" "pkg/Instant Pump (Mac)/"
           cp Install/INSTALUJ-Mac.txt LICENSE "pkg/Instant Pump (Mac)/"
