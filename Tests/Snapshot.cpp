@@ -19,7 +19,7 @@ struct FakeHead : juce::AudioPlayHead
 int main (int argc, char** argv)
 {
     juce::ScopedJuceInitialiser_GUI init;
-    const juce::String out = argc > 1 ? argv[1] : "kickduck.png";
+    const juce::String out = argc > 1 ? argv[1] : "instantpump.png";
     const double sr = 48000; const int bs = 512;
 
     KickDuckProcessor proc;

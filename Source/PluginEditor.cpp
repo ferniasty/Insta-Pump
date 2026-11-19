@@ -276,7 +276,7 @@ void KickDuckEditor::paint (Graphics& g)
     drawSpacedText (g, "A C A D E M Y", logo.removeFromTop (18.f), 13.f, rave::purple, Justification::topLeft, 0.18f);
 
     g.setFont (uiFont (36.f).withHorizontalScale (0.92f));
-    const String a = "KICK ", c = "DUCK";
+    const String a = "INSTANT ", c = "PUMP";
     GlyphArrangement ga; ga.addLineOfText (g.getCurrentFont(), a + c, 0, 0);
     const float tw = ga.getBoundingBox (0, -1, true).getWidth();
     auto name = head.withLeft (head.getRight() - tw - 4.f);

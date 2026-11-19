@@ -1,4 +1,4 @@
-# Kick Duck (Rave Academy)
+# Rave Academy – Instant Pump
 
 Volume-ducking plugin in the style of a sidechain: the bass is turned down on every kick and
 comes back along a smooth curve. VST3 (Mac + Windows) and AU (Mac), built with JUCE 8.
@@ -29,12 +29,12 @@ cmake -B build -DKD_BUILD_TOOLS=ON && cmake --build build
 
 ## Install (Mac)
 
-Unzip and copy `Kick Duck.vst3` to `~/Library/Audio/Plug-Ins/VST3/` and
-`Kick Duck.component` to `~/Library/Audio/Plug-Ins/Components/`.
+Unzip and copy `Instant Pump.vst3` to `~/Library/Audio/Plug-Ins/VST3/` and
+`Instant Pump.component` to `~/Library/Audio/Plug-Ins/Components/`.
 The build is not notarized, so macOS may block it the first time. Remove the quarantine flag:
 
 ```bash
-xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"Kick Duck.vst3" ~/Library/Audio/Plug-Ins/Components/"Kick Duck.component"
+xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"Instant Pump.vst3" ~/Library/Audio/Plug-Ins/Components/"Instant Pump.component"
 ```
 
 ## License note

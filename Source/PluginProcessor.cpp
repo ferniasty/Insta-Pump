@@ -5,7 +5,7 @@ KickDuckProcessor::KickDuckProcessor()
     : AudioProcessor (BusesProperties()
                           .withInput ("Input", juce::AudioChannelSet::stereo(), true)
                           .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
-      params (*this, nullptr, "KickDuck", createLayout())
+      params (*this, nullptr, "InstantPump", createLayout())
 {
     mixParam = params.getRawParameterValue ("mix");
     lengthParam = params.getRawParameterValue ("length");
