@@ -7,7 +7,7 @@ if ! xcode-select -p >/dev/null 2>&1; then xcode-select --install; echo "Zainsta
 if ! command -v cmake >/dev/null 2>&1; then
   if command -v brew >/dev/null 2>&1; then brew install cmake; else echo "Brak CMake. Zainstaluj: https://cmake.org/download/ (albo Homebrew: brew install cmake)"; exit 1; fi
 fi
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
 cmake --build build --config Release --target InstantPump_VST3 InstantPump_AU -j "$(sysctl -n hw.ncpu)"
 A="build/InstantPump_artefacts/Release"
 codesign --force --deep -s - "$A/VST3/Instant Pump.vst3" "$A/AU/Instant Pump.component"

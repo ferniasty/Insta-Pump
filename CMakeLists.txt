@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.22)
-project(InstantPump VERSION 1.0.0)
+# must be set BEFORE project(), otherwise the SDK version (e.g. macOS 15) becomes the minimum
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version")
+project(InstantPump VERSION 1.0.1)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "")
 
 include(FetchContent)
 # Pass -DFETCHCONTENT_SOURCE_DIR_JUCE=/path/to/JUCE to use a local checkout
