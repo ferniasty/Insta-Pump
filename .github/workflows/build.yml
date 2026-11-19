@@ -1,0 +1,45 @@
+name: Build Kick Duck
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure (universal: Apple Silicon + Intel)
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+      - name: Build VST3 + AU
+        run: cmake --build build --config Release --target KickDuck_VST3 KickDuck_AU -j 4
+      - name: Ad-hoc sign and zip
+        run: |
+          A="build/KickDuck_artefacts/Release"
+          codesign --force --deep -s - "$A/VST3/Kick Duck.vst3"
+          codesign --force --deep -s - "$A/AU/Kick Duck.component"
+          mkdir -p dist
+          ditto -c -k --keepParent "$A/VST3/Kick Duck.vst3" "dist/Kick Duck VST3 (Mac).zip"
+          ditto -c -k --keepParent "$A/AU/Kick Duck.component" "dist/Kick Duck AU (Mac).zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KickDuck-mac
+          path: dist/
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -B build
+      - name: Build VST3
+        run: cmake --build build --config Release --target KickDuck_VST3
+      - name: Zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path "build/KickDuck_artefacts/Release/VST3/Kick Duck.vst3" -DestinationPath "dist/Kick Duck VST3 (Windows).zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KickDuck-windows
+          path: dist/
