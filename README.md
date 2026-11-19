@@ -3,12 +3,17 @@
 Darmowa wtyczka od Rave Academy: efekt „sidechain” bez routingu. Bas (albo pady, reverb, cokolwiek)
 ścisza się na każdą stopę i wraca płynnym łukiem, w rytm tempa projektu.
 
-## Pobierz
+## Jak zbudować paczkę do rozdania (za darmo)
 
-- **Mac (VST3 + AU, Apple Silicon i Intel):** https://github.com/OWNER/REPO/releases/latest/download/InstantPump-Mac.zip
-- **Windows (VST3):** https://github.com/OWNER/REPO/releases/latest/download/InstantPump-Windows.zip
+**Na swoim Macu (polecane, $0, bez limitów):** kliknij dwukrotnie `Build-macOS.command`.
+Skrypt zbuduje wtyczkę (Apple Silicon + Intel), zainstaluje ją u Ciebie i zrobi paczkę
+`dist/InstantPump-Mac.zip` (VST3 + AU + instrukcja + licencja + kod źródłowy).
 
-Instrukcja instalacji jest w środku każdej paczki (plik `INSTALUJ-...txt`).
+**Na GitHubie (mieści się w darmowych $12/mies.):** zakładka **Actions → Build Instant Pump →
+Run workflow**. Mac i Windows budują się tylko na żądanie albo przy tagu `vX.Y.Z`; zwykły push
+uruchamia jedynie tanie testy na Linuksie. Gotowe paczki są w **Artifacts** danego przebiegu.
+
+Paczkę wrzucasz do MailerLite / Gumroad (pobranie za adres email).
 
 ## Pokrętła
 

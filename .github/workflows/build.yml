@@ -1,16 +1,31 @@
 name: Build Instant Pump
 
+# Cost control: macOS minutes are ~10x Linux. Every push only runs the cheap Linux test job.
+# Mac + Windows builds run when you click "Run workflow" (Actions tab) or push a tag vX.Y.Z.
 on:
   push:
-    branches: [main]
-    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install JUCE Linux deps
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libasound2-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libfreetype-dev libfontconfig1-dev xvfb
+      - name: Build tests
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DKD_BUILD_TOOLS=ON && cmake --build build -j 4 --target kd_envelope_test kd_snapshot
+      - name: Run tests
+        run: |
+          ./build/kd_envelope_test
+          xvfb-run -a ./build/kd_snapshot_artefacts/Release/kd_snapshot preview.png
+
   macos:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    needs: test-linux
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -25,12 +40,15 @@ jobs:
           codesign --force --deep -s - "$A/AU/Instant Pump.component"
           mkdir -p "pkg/Instant Pump (Mac)" dist
           cp -R "$A/VST3/Instant Pump.vst3" "$A/AU/Instant Pump.component" "pkg/Instant Pump (Mac)/"
-          cp Install/INSTALUJ-Mac.txt "pkg/Instant Pump (Mac)/"
+          cp Install/INSTALUJ-Mac.txt LICENSE "pkg/Instant Pump (Mac)/"
+          git archive --format=zip -o "pkg/Instant Pump (Mac)/Instant Pump - kod zrodlowy.zip" HEAD
           ditto -c -k --keepParent "pkg/Instant Pump (Mac)" dist/InstantPump-Mac.zip
       - uses: actions/upload-artifact@v4
         with: { name: mac, path: dist/ }
 
   windows:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    needs: test-linux
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +61,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force "pkg/Instant Pump (Windows)", dist | Out-Null
           Copy-Item -Recurse "build/InstantPump_artefacts/Release/VST3/Instant Pump.vst3" "pkg/Instant Pump (Windows)/"
-          Copy-Item Install/INSTALUJ-Windows.txt "pkg/Instant Pump (Windows)/"
+          Copy-Item Install/INSTALUJ-Windows.txt, LICENSE "pkg/Instant Pump (Windows)/"
+          git archive --format=zip -o "pkg/Instant Pump (Windows)/Instant Pump - kod zrodlowy.zip" HEAD
           Compress-Archive -Path "pkg/Instant Pump (Windows)" -DestinationPath dist/InstantPump-Windows.zip
       - uses: actions/upload-artifact@v4
         with: { name: windows, path: dist/ }
