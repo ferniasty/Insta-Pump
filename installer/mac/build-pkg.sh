@@ -14,7 +14,11 @@ mkpart () {   # mkpart <part> <bundle> <install dir>
   chmod -R 755 "$W/root-$part"
   pkgbuild --analyze --root "$W/root-$part" "$W/$part.plist"
   # never "relocate" to a copy the user moved elsewhere: always install into the plug-in folder
-  /usr/libexec/PlistBuddy -c "Set :0:BundleIsRelocatable false" "$W/$part.plist"
+  local n=0
+  while /usr/libexec/PlistBuddy -c "Print :$n" "$W/$part.plist" >/dev/null 2>&1; do
+    /usr/libexec/PlistBuddy -c "Set :$n:BundleIsRelocatable false" "$W/$part.plist" 2>/dev/null || true
+    n=$((n+1))
+  done
   pkgbuild --root "$W/root-$part" --component-plist "$W/$part.plist" --identifier "com.raveacademy.$ID.$part" \
            --version "$VER" --install-location / "$W/$part.pkg"
 }
