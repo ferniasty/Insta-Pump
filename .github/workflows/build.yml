@@ -46,6 +46,15 @@ jobs:
           cp Install/INSTALUJ-Mac.txt LICENSE "pkg/Instant Pump (Mac)/"
           git archive --format=zip -o "pkg/Instant Pump (Mac)/Instant Pump - kod zrodlowy.zip" HEAD
           ditto -c -k --keepParent "pkg/Instant Pump (Mac)" dist/InstantPump-Mac.zip
+      - name: Build the double-click installer (.pkg)
+        run: |
+          A="build/InstantPump_artefacts/Release"
+          installer/mac/build-pkg.sh "Rave Academy Instant Pump" instantpump "1.0.${{ github.run_number }}" \
+            "$A/VST3/Rave Academy Instant Pump.vst3" "$A/AU/Rave Academy Instant Pump.component" \
+            "dist/Rave-Academy-Instant-Pump-Installer-Mac.pkg"
+          # sanity check: the package must contain both bundles at the right place
+          pkgutil --payload-files "dist/Rave-Academy-Instant-Pump-Installer-Mac.pkg" | grep -q "Plug-Ins/VST3/Rave Academy Instant Pump.vst3" || \
+          (pkgutil --expand "dist/Rave-Academy-Instant-Pump-Installer-Mac.pkg" x && find x -name Payload | head -5 && ls -R x | head -40)
       - uses: actions/upload-artifact@v4
         with: { name: mac, path: dist/ }
 
@@ -66,6 +75,16 @@ jobs:
           Copy-Item Install/INSTALUJ-Windows.txt, LICENSE "pkg/Instant Pump (Windows)/"
           git archive --format=zip -o "pkg/Instant Pump (Windows)/Instant Pump - kod zrodlowy.zip" HEAD
           Compress-Archive -Path "pkg/Instant Pump (Windows)" -DestinationPath dist/InstantPump-Windows.zip
+      - name: Build the double-click installer (.exe)
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress | Out-Null }
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          $src = (Resolve-Path "build/InstantPump_artefacts/Release/VST3/Rave Academy Instant Pump.vst3").Path
+          & $iscc "/DAppName=Rave Academy Instant Pump" "/DAppId=instantpump" "/DAppVersion=1.0.${{ github.run_number }}" "/DSourceVst3=$src" "/DOutName=Rave-Academy-Instant-Pump-Setup-Windows" installer/windows/setup.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Move-Item installer/windows/Rave-Academy-Instant-Pump-Setup-Windows.exe dist/
       - uses: actions/upload-artifact@v4
         with: { name: windows, path: dist/ }
 
@@ -85,4 +104,6 @@ jobs:
           files: |
             dist/InstantPump-Mac.zip
             dist/InstantPump-Windows.zip
+            dist/Rave-Academy-Instant-Pump-Installer-Mac.pkg
+            dist/Rave-Academy-Instant-Pump-Setup-Windows.exe
           make_latest: true
